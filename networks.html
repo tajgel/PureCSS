@@ -1,0 +1,687 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>XYZ | Neural Networks</title>
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+      body {
+        background: #000;
+        overflow-x: hidden;
+        min-height: 100vh;
+        font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+        color: white;
+      }
+      .background {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(45deg, #790079, #2600ff, #790079);
+        background-size: 400% 400%;
+        animation: gradientShift 6s ease infinite;
+        z-index: -5;
+      }
+      @keyframes gradientShift {
+        0% {
+          background-position: 0% 50%;
+        }
+        50% {
+          background-position: 100% 50%;
+        }
+        100% {
+          background-position: 0% 50%;
+        }
+      }
+      .orb {
+        position: fixed;
+        border-radius: 50%;
+        filter: blur(80px);
+        opacity: 0.6;
+        z-index: -4;
+      }
+      .orb1 {
+        width: 500px;
+        height: 500px;
+        background: radial-gradient(circle, #ff0080, transparent);
+        top: -100px;
+        left: -100px;
+        animation: float 25s ease-in-out infinite;
+      }
+      .orb2 {
+        width: 400px;
+        height: 400px;
+        background: radial-gradient(circle, #0080ff, transparent);
+        bottom: -100px;
+        right: -100px;
+        animation: float 20s ease-in-out infinite reverse;
+      }
+      .orb3 {
+        width: 600px;
+        height: 600px;
+        background: radial-gradient(circle, #00ff80, transparent);
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        animation: pulse 15s ease-in-out infinite;
+      }
+      @keyframes float {
+        0%,
+        100% {
+          transform: translate(0, 0) scale(1);
+        }
+        33% {
+          transform: translate(100px, -100px) scale(1.1);
+        }
+        66% {
+          transform: translate(-100px, 100px) scale(0.9);
+        }
+      }
+      @keyframes pulse {
+        0%,
+        100% {
+          transform: translate(-50%, -50%) scale(1);
+          opacity: 0.6;
+        }
+        50% {
+          transform: translate(-50%, -50%) scale(1.2);
+          opacity: 0.4;
+        }
+      }
+      .glow-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: radial-gradient(
+          circle at 50% 50%,
+          rgba(255, 255, 255, 0.1),
+          transparent 70%
+        );
+        pointer-events: none;
+        animation: glowPulse 8s ease-in-out infinite;
+        z-index: -2;
+      }
+      .glass-panel {
+        background: rgba(255, 255, 255, 0.1);
+        backdrop-filter: blur(15px);
+        -webkit-backdrop-filter: blur(15px);
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.37);
+        color: white;
+      }
+      .site {
+        width: 100vw;
+        min-height: 100vh;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        position: relative;
+        z-index: 10;
+        padding-bottom: 20px;
+      }
+      header {
+        width: 90%;
+        min-height: 80px;
+        margin-top: 20px;
+        border-radius: 20px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 15px 30px;
+        flex-wrap: wrap;
+      }
+      .logo {
+        font-size: 1.5rem;
+        font-weight: bold;
+        text-transform: uppercase;
+        letter-spacing: 2px;
+        text-shadow: 0 0 10px rgba(255, 255, 255, 0.5);
+      }
+      .nav-links {
+        display: flex;
+        align-items: center;
+      }
+      .nav-links a {
+        color: white;
+        text-decoration: none;
+        margin-left: 20px;
+        font-weight: 500;
+        transition: color 0.3s ease;
+      }
+      .nav-links a:hover {
+        color: #00ffff;
+        text-shadow: 0 0 10px #990299;
+      }
+      .page {
+        display: flex;
+        justify-content: space-between;
+        flex-direction: row;
+        width: 90%;
+        flex: 1;
+        margin: 20px 0;
+        gap: 20px;
+      }
+      .page > div {
+        border-radius: 20px;
+        padding: 30px;
+        display: flex;
+        flex-direction: column;
+      }
+      .left-panel {
+        width: 20%;
+      }
+      .main-panel {
+        width: 100%;
+        justify-content: center;
+        align-items: center;
+        text-align: center;
+      }
+      .right-panel {
+        width: 20%;
+      }
+      .menu-list {
+        list-style: none;
+        margin-top: 10px;
+      }
+      .menu-list li {
+        padding: 15px 10px;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        cursor: pointer;
+        transition: all 0.3s ease;
+        font-size: 0.9rem;
+      }
+      .menu-list li:hover {
+        background: rgba(255, 255, 255, 0.1);
+        padding-left: 20px;
+      }
+      ul a {
+        color: inherit;
+        text-decoration: none;
+      }
+
+      @media (max-width: 1024px) {
+        .page {
+          flex-wrap: wrap;
+          height: auto;
+        }
+        .main-panel {
+          width: 100%;
+          order: 1;
+          margin-bottom: 20px;
+        }
+        h1 {
+          font-size: 3rem;
+        }
+      }
+      @media (max-width: 768px) {
+        body {
+          overflow-y: auto;
+        }
+        header {
+          flex-direction: column;
+          gap: 15px;
+          padding: 20px;
+        }
+        .nav-links {
+          margin-left: 0;
+          gap: 15px;
+        }
+        .nav-links a {
+          margin: 0;
+          font-size: 0.9rem;
+        }
+        .page {
+          flex-direction: column;
+          gap: 20px;
+          margin-top: 10px;
+        }
+        .main-panel {
+          width: 100%;
+          order: 1;
+          padding: 40px 20px;
+        }
+        h1 {
+          font-size: 2.5rem;
+        }
+        .subtitle {
+          font-size: 1rem;
+          max-width: 100%;
+        }
+        .orb {
+          opacity: 0.4;
+        }
+      }
+      .networks-content {
+        display: flex;
+        width: 80%;
+        flex-direction: row;
+        justify-content: space-between;
+        align-items: center;
+        text-align: center;
+      }
+      .network-col {
+        display: flex;
+        flex-direction: column;
+      }
+
+      .network-grid {
+        display: grid;
+        grid-template-columns: repeat(6, 1fr);
+        grid-template-rows: repeat(6, 1fr);
+        width: 250px;
+        height: 250px;
+        gap: 10px;
+        margin: 40px auto;
+        padding: 20px;
+        background: rgba(0, 0, 0, 0.2);
+        border-radius: 10px;
+      }
+      .neuron {
+        width: 100%;
+        height: 100%;
+        border-radius: 50%;
+        background-color: #ff00ff;
+        opacity: 0.1;
+        box-shadow: 0 0 5px #ff00ff;
+        animation: neuronFire 2s ease-out infinite alternate;
+      }
+      .neuron:nth-child(3n + 1) {
+        animation-delay: 0.2s;
+      }
+      .neuron:nth-child(3n + 2) {
+        animation-delay: 0.4s;
+      }
+      .neuron:nth-child(3n + 3) {
+        animation-delay: 0.6s;
+      }
+      .neuron:nth-child(4n) {
+        animation-delay: 0.1s;
+      }
+      .neuron:nth-child(5n) {
+        animation-delay: 0.3s;
+      }
+      .neuron:nth-child(7n) {
+        animation-delay: 0.5s;
+      }
+
+      @keyframes neuronFire {
+        0% {
+          opacity: 0.1;
+          transform: scale(0.8);
+          box-shadow: 0 0 5px #ff00ff;
+        }
+        50% {
+          opacity: 0.8;
+          transform: scale(1.1);
+          box-shadow: 0 0 20px #ff00ff, 0 0 40px #ff00ff;
+        }
+        100% {
+          opacity: 0.1;
+          transform: scale(0.8);
+          box-shadow: 0 0 5px #ff00ff;
+        }
+      }
+      .network-grid2 {
+        display: grid;
+        grid-template-columns: repeat(12, 1fr);
+        grid-template-rows: repeat(12, 1fr);
+        width: 250px;
+        height: 250px;
+        gap: 10px;
+        margin: 40px auto;
+        padding: 20px;
+        background: rgba(0, 0, 0, 0.2);
+        border-radius: 10px;
+      }
+      .neuron2 {
+        width: 100%;
+        height: 100%;
+        border-radius: 50%;
+        background-color: #0004ff;
+        opacity: 0.1;
+        box-shadow: 0 0 5px #0004ff;
+        animation: neuronFire2 2s ease-out infinite alternate;
+      }
+      @keyframes neuronFire2 {
+        0% {
+          opacity: 0.1;
+          transform: scale(0.8);
+          box-shadow: 0 0 5px #0004ff;
+        }
+        50% {
+          opacity: 0.8;
+          transform: scale(1.1);
+          box-shadow: 0 0 20px #0004ff, 0 0 40px #0004ff;
+        }
+        100% {
+          opacity: 0.1;
+          transform: scale(0.8);
+          box-shadow: 0 0 5px #0004ff;
+        }
+      }
+      .neuron2:nth-child(3n + 1) {
+        animation-delay: 2s;
+      }
+      .neuron2:nth-child(3n + 2) {
+        animation-delay: 4s;
+      }
+      .neuron2:nth-child(3n + 3) {
+        animation-delay: 6s;
+      }
+      .neuron2:nth-child(4n) {
+        animation-delay: 1s;
+      }
+      .neuron2:nth-child(5n) {
+        animation-delay: 3s;
+      }
+      .neuron2:nth-child(7n) {
+        animation-delay: 5s;
+      }
+      .network-grid3 {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        grid-template-rows: repeat(3, 1fr);
+        width: 250px;
+        height: 250px;
+        gap: 10px;
+        margin: 40px auto;
+        padding: 20px;
+        background: rgba(0, 0, 0, 0.2);
+        border-radius: 10px;
+      }
+      .neuron3 {
+        width: 100%;
+        height: 100%;
+        border-radius: 50%;
+        background-color: #00ff15;
+        opacity: 0.1;
+        box-shadow: 0 0 5px #00ff15;
+        animation: neuronFire3 2s ease-out infinite alternate;
+      }
+      @keyframes neuronFire3 {
+        0% {
+          opacity: 0.1;
+          transform: scale(0.8);
+          box-shadow: 0 0 5px #00ff15;
+        }
+        50% {
+          opacity: 0.8;
+          transform: scale(1.1);
+          box-shadow: 0 0 20px #00ff15, 0 0 40px #00ff15;
+        }
+        100% {
+          opacity: 0.1;
+          transform: scale(0.8);
+          box-shadow: 0 0 5px #00ff15;
+        }
+      }
+      .neuron3:nth-child(3n + 1) {
+        animation-delay: 0.5s;
+      }
+      .neuron3:nth-child(3n + 2) {
+        animation-delay: 0.8s;
+      }
+      .neuron3:nth-child(3n + 3) {
+        animation-delay: 0.7s;
+      }
+      .neuron3:nth-child(4n) {
+        animation-delay: 1s;
+      }
+      .neuron3:nth-child(5n) {
+        animation-delay: 3s;
+      }
+      .neuron3:nth-child(7n) {
+        animation-delay: 2s;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="background"></div>
+    <div class="orb orb1"></div>
+    <div class="orb orb2"></div>
+    <div class="orb orb3"></div>
+    <div class="glow-overlay"></div>
+
+    <div class="site">
+      <header class="glass-panel">
+        <div class="logo">XYZ SYSTEMS</div>
+        <div class="nav-links">
+          <a href="index.html">Home</a>
+          <a href="#">Solutions</a>
+          <a href="#">Vision</a>
+          <a href="#">Login</a>
+        </div>
+      </header>
+
+      <div class="page">
+        <div class="main-panel glass-panel">
+          <h1>SENTIENT ARCHITECTURES</h1>
+          <p class="subtitle">
+            Training and deploying cutting-edge neural models. Our AI is
+            learning to manage the future.
+          </p>
+          <div class="networks-content">
+            <div class="network-col">
+              <div class="network-grid">
+                <div class="neuron"></div>
+                <div class="neuron"></div>
+                <div class="neuron"></div>
+                <div class="neuron"></div>
+                <div class="neuron"></div>
+                <div class="neuron"></div>
+                <div class="neuron"></div>
+                <div class="neuron"></div>
+                <div class="neuron"></div>
+                <div class="neuron"></div>
+                <div class="neuron"></div>
+                <div class="neuron"></div>
+                <div class="neuron"></div>
+                <div class="neuron"></div>
+                <div class="neuron"></div>
+                <div class="neuron"></div>
+                <div class="neuron"></div>
+                <div class="neuron"></div>
+                <div class="neuron"></div>
+                <div class="neuron"></div>
+                <div class="neuron"></div>
+                <div class="neuron"></div>
+                <div class="neuron"></div>
+                <div class="neuron"></div>
+                <div class="neuron"></div>
+                <div class="neuron"></div>
+                <div class="neuron"></div>
+                <div class="neuron"></div>
+                <div class="neuron"></div>
+                <div class="neuron"></div>
+                <div class="neuron"></div>
+                <div class="neuron"></div>
+                <div class="neuron"></div>
+                <div class="neuron"></div>
+                <div class="neuron"></div>
+                <div class="neuron"></div>
+              </div>
+              <p class="subtitle" style="margin-bottom: 0">
+                Active Model: <b>LuminaCore V1.8</b>
+              </p>
+            </div>
+            <div class="network-col">
+              <div class="network-grid2">
+                <div class="neuron2"></div>
+                <div class="neuron2"></div>
+                <div class="neuron2"></div>
+                <div class="neuron2"></div>
+                <div class="neuron2"></div>
+                <div class="neuron2"></div>
+                <div class="neuron2"></div>
+                <div class="neuron2"></div>
+                <div class="neuron2"></div>
+                <div class="neuron2"></div>
+                <div class="neuron2"></div>
+                <div class="neuron2"></div>
+                <div class="neuron2"></div>
+                <div class="neuron2"></div>
+                <div class="neuron2"></div>
+                <div class="neuron2"></div>
+                <div class="neuron2"></div>
+                <div class="neuron2"></div>
+                <div class="neuron2"></div>
+                <div class="neuron2"></div>
+                <div class="neuron2"></div>
+                <div class="neuron2"></div>
+                <div class="neuron2"></div>
+                <div class="neuron2"></div>
+                <div class="neuron2"></div>
+                <div class="neuron2"></div>
+                <div class="neuron2"></div>
+                <div class="neuron2"></div>
+                <div class="neuron2"></div>
+                <div class="neuron2"></div>
+                <div class="neuron2"></div>
+                <div class="neuron2"></div>
+                <div class="neuron2"></div>
+                <div class="neuron2"></div>
+                <div class="neuron2"></div>
+                <div class="neuron2"></div>
+                <div class="neuron2"></div>
+                <div class="neuron2"></div>
+                <div class="neuron2"></div>
+                <div class="neuron2"></div>
+                <div class="neuron2"></div>
+                <div class="neuron2"></div>
+                <div class="neuron2"></div>
+                <div class="neuron2"></div>
+                <div class="neuron2"></div>
+                <div class="neuron2"></div>
+                <div class="neuron2"></div>
+                <div class="neuron2"></div>
+                <div class="neuron2"></div>
+                <div class="neuron2"></div>
+                <div class="neuron2"></div>
+                <div class="neuron2"></div>
+                <div class="neuron2"></div>
+                <div class="neuron2"></div>
+                <div class="neuron2"></div>
+                <div class="neuron2"></div>
+                <div class="neuron2"></div>
+                <div class="neuron2"></div>
+                <div class="neuron2"></div>
+                <div class="neuron2"></div>
+                <div class="neuron2"></div>
+                <div class="neuron2"></div>
+                <div class="neuron2"></div>
+                <div class="neuron2"></div>
+                <div class="neuron2"></div>
+                <div class="neuron2"></div>
+                <div class="neuron2"></div>
+                <div class="neuron2"></div>
+                <div class="neuron2"></div>
+                <div class="neuron2"></div>
+                <div class="neuron2"></div>
+                <div class="neuron2"></div>
+                <div class="neuron2"></div>
+                <div class="neuron2"></div>
+                <div class="neuron2"></div>
+                <div class="neuron2"></div>
+                <div class="neuron2"></div>
+                <div class="neuron2"></div>
+                <div class="neuron2"></div>
+                <div class="neuron2"></div>
+                <div class="neuron2"></div>
+                <div class="neuron2"></div>
+                <div class="neuron2"></div>
+                <div class="neuron2"></div>
+                <div class="neuron2"></div>
+                <div class="neuron2"></div>
+                <div class="neuron2"></div>
+                <div class="neuron2"></div>
+                <div class="neuron2"></div>
+                <div class="neuron2"></div>
+                <div class="neuron2"></div>
+                <div class="neuron2"></div>
+                <div class="neuron2"></div>
+                <div class="neuron2"></div>
+                <div class="neuron2"></div>
+                <div class="neuron2"></div>
+                <div class="neuron2"></div>
+                <div class="neuron2"></div>
+                <div class="neuron2"></div>
+                <div class="neuron2"></div>
+                <div class="neuron2"></div>
+                <div class="neuron2"></div>
+                <div class="neuron2"></div>
+                <div class="neuron2"></div>
+                <div class="neuron2"></div>
+                <div class="neuron2"></div>
+                <div class="neuron2"></div>
+                <div class="neuron2"></div>
+                <div class="neuron2"></div>
+                <div class="neuron2"></div>
+                <div class="neuron2"></div>
+                <div class="neuron2"></div>
+                <div class="neuron2"></div>
+                <div class="neuron2"></div>
+                <div class="neuron2"></div>
+                <div class="neuron2"></div>
+                <div class="neuron2"></div>
+                <div class="neuron2"></div>
+                <div class="neuron2"></div>
+                <div class="neuron2"></div>
+                <div class="neuron2"></div>
+                <div class="neuron2"></div>
+                <div class="neuron2"></div>
+                <div class="neuron2"></div>
+                <div class="neuron2"></div>
+                <div class="neuron2"></div>
+                <div class="neuron2"></div>
+                <div class="neuron2"></div>
+                <div class="neuron2"></div>
+                <div class="neuron2"></div>
+                <div class="neuron2"></div>
+                <div class="neuron2"></div>
+                <div class="neuron2"></div>
+                <div class="neuron2"></div>
+                <div class="neuron2"></div>
+                <div class="neuron2"></div>
+                <div class="neuron2"></div>
+                <div class="neuron2"></div>
+                <div class="neuron2"></div>
+                <div class="neuron2"></div>
+                <div class="neuron2"></div>
+                <div class="neuron2"></div>
+                <div class="neuron2"></div>
+                <div class="neuron2"></div>
+              </div>
+              <p class="subtitle" style="margin-bottom: 0">
+                Active Model: <b>Beta-AstraMind V3.2</b>
+              </p>
+            </div>
+            <div class="network-col3">
+              <div class="network-grid3">
+                <div class="neuron3"></div>
+                <div class="neuron3"></div>
+                <div class="neuron3"></div>
+                <div class="neuron3"></div>
+                <div class="neuron3"></div>
+                <div class="neuron3"></div>
+                <div class="neuron3"></div>
+                <div class="neuron3"></div>
+                <div class="neuron3"></div>
+              </div>
+              <p class="subtitle" style="margin-bottom: 0">
+                Active Model: <b>VireoNet V4.5</b>
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </body>
+</html>
